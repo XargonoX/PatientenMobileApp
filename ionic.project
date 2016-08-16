@@ -1,0 +1,10 @@
+{
+  "name": "PatientenMobileApp",
+  "app_id": "",
+  "proxies": [
+      {
+        "path": "/patientAPI",
+        "proxyUrl": "http://134.60.174.185:3000/patientAPI/"
+      }
+    ]
+}
