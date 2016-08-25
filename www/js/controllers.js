@@ -1,8 +1,12 @@
-angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMaterial", "ngStorage"])
+angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMaterial", "ngStorage", "ui.router"])
 
-  .controller('TherapyTasksCtrl', function ($scope, $localStorage) {
-    //Blabla
+  .controller('TherapyTasksCtrl', function ($scope, $localStorage, $state) {
     $scope.$storage = $localStorage;
+    /*
+    $scope.switch = function(index){
+      $state.go('tab.task-detail',index,notify = true);
+    }
+    */
   })
 
   .controller('ProfileCtrl', function ($scope, Chats) {
@@ -22,8 +26,10 @@ angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMateria
 
   })
 
-  .controller('ChatDetailCtrl', function ($scope, $stateParams, Chats) {
-    $scope.chat = Chats.get($stateParams.chatId);
+  .controller('TaskDetailCtrl', function ($scope, $stateParams) {
+    $scope.id = $stateParams.taskId;
+    console.log("id: " + $scope.id);
+    console.log("asdfjhasjdfjsdf");
   })
 
   .controller('SettingsCtrl', function ($scope, $http, $mdDialog, $ionicPopup, $localStorage) {
@@ -33,15 +39,18 @@ angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMateria
     $scope.isNameFormDisabled = false;
     $scope.patient = {};
     $scope.$storage = $localStorage;
-
     if(typeof $scope.$storage.patient != "undefined"){
-      $scope.isNameFormDisabled = true;
+      //$scope.isNameFormDisabled = true;
     }
 
-
-    $http.get("/patientAPI/").success(function (response) {
+    //http://192.168.40.106:3000/
+    $http.get("/patientAPI").success(function (response) {
+    console.log("success!!!");
       $scope.patients = response;
-    });
+    }).error(function(res){
+                console.log("API Zugriff fehlgeschlagen");
+                console.log(res);
+                });
 
     $scope.showPopup = function () {
       // Custom popup
@@ -57,15 +66,13 @@ angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMateria
               if (!$scope.input.name) {
                 e.preventDefault();  //don't allow the user to close unless he enters model...
               } else {
+              console.log("lalala");
                 $scope.searchResult = {};
                 $scope.searchResult = $.grep($scope.patients, function (patients) {
                   return patients.name == $scope.input.name;
                 });
-                console.log("if");
                 if($scope.searchResult.length > 0){
-                  console.log("length>0");
                   $scope.$storage.patient = $scope.searchResult[0];
-
                   $scope.isNameFormDisabled = true;
                 }
                 return $scope.input.name;
@@ -79,7 +86,11 @@ angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMateria
         console.log('Tapped!', res);
       });
 
-    }
+    };
   });
+
+
+
+
 
 

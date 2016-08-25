@@ -3,10 +3,23 @@
     <ion-list>
       <h3>Zugewiesene Aufgaben</h3>
       <div ng-controller="SettingsCtrl">
-        <ion-item ng-repeat="task in $storage.patient.assignedTherapyTasks">
-        {{task.Pattern}}
-      </ion-item>
+        <div ion-view></div>
+        <ion-item  class="item"  ng-repeat="task in $storage.patient.assignedTherapyTasks"
+                   class="item-remove-animate item-avatar item-icon-right" type="item-text-wrap" href="#/tab/taskDetail/" >
+          <h2>{{task.Pattern}}</h2>
+         <!-- <button class="button btn-success" ng-click="switch($index)">Details</button> -->
+
+          <div ng-repeat="weekday in task.ActualContext.OnWeekdays">
+            <p>{{weekday}}</p>
+          </div>
+        </ion-item>
       </div>
     </ion-list>
   </ion-content>
 </ion-view>
+
+
+<!--    href="/tab/therapyTasks/taskDetail/{{$index}}"
+ui-sref="tab.task-detail({taskId : $index})"
+
+-->

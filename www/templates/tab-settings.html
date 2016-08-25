@@ -1,15 +1,14 @@
 <ion-view view-title="Settings">
   <ion-content>
-    <ion-list>
-      <h1>Settings Bla Bla</h1>
-      <p>Einstellungen vornehmen</p>
       <div ng-controller="SettingsCtrl">
         <ion-item class="button" ng-click="showPopup()" ng-disabled="isNameFormDisabled">Profil wählen</ion-item>
-        <h1>Gewähltes Profil:</h1>
-        <ion-item class="label">Name: {{input.name}} || </ion-item>
-        <ion-item class="label">ID: {{$storage.patient._id}}</ion-item>
-
+        <br><br><br><br>
+        <h3>Gewähltes Profil:</h3>
+        <ion-item class="label"><p>Name: {{input.name}} </p></ion-item>
+        <ion-item class="label"><p>ID: {{$storage.patient._id}}</p></ion-item>
       </div>
-    </ion-list>
   </ion-content>
 </ion-view>
+
+
+

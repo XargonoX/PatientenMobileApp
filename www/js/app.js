@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.services'])
+angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.services', 'ui.router'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -49,7 +49,6 @@ angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.ser
       }
     }
   })
-
   .state('tab.profile', {
       url: '/profile',
       views: {
@@ -59,16 +58,6 @@ angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.ser
         }
       }
     })
-    .state('tab.chat-detail', {
-      url: '/chats/:chatId',
-      views: {
-        'tab-chats': {
-          templateUrl: 'templates/chat-detail.html',
-          controller: 'ChatDetailCtrl'
-        }
-      }
-    })
-
   .state('tab.settings', {
     url: '/settings',
     views: {
@@ -77,7 +66,17 @@ angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.ser
         controller: 'SettingsCtrl'
       }
     }
-  });
+  })
+  .state('tab.task-detail', {
+    url: '/taskDetail/:taskId',
+    views: {
+      'tab-task-detail': {
+        templateUrl: 'templates/task-detail.html',
+        controller: 'TaskDetailCtrl'
+      }
+    }
+  })
+  ;
 
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/tab/settings');

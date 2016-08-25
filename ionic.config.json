@@ -4,7 +4,7 @@
   "proxies": [
       {
         "path": "/patientAPI",
-        "proxyUrl": "http://134.60.174.185:3000/patientAPI/"
+        "proxyUrl": "http://192.168.10.100:3000/patientAPI/"
       }
     ]
 }
