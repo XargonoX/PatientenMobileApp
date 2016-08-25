@@ -1,33 +1,29 @@
 angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMaterial", "ngStorage", "ui.router"])
 
-  .controller('TherapyTasksCtrl', function ($scope, $localStorage, $state) {
+  .controller('TaskListCtrl', function ($scope, $localStorage, $state) {
     $scope.$storage = $localStorage;
 
+  })
 
-
+  .controller('TaskDetailCtrl', function ($scope, $stateParams, $localStorage, $http) {
+    $scope.$storage = $localStorage;
+    $scope.id = $stateParams.taskId;
+    console.log("id: " + $scope.id);
+    $scope.currentTask = $scope.$storage.patient.assignedTherapyTasks[$scope.id];
+    $http.get("/therapyTaskAPI/" + $scope.currentTask.PatternID).success(function (response) {
+      console.log("Task Pattern geladen");
+      $scope.taskPattern = response;
+    }).error(function(res){
+      console.log("API Zugriff fehlgeschlagen");
+      console.log(res);
+      });
+      //console.log("mat: " + $scope.currentTask.materials[0]);
   })
 
   .controller('ProfileCtrl', function ($scope, Chats) {
-    // With the new view caching in Ionic, Controllers are only called
-    // when they are recreated or on app start, instead of every page change.
-    // To listen for when this page is active (for example, to refresh data),
-    // listen for the $ionicView.enter event:
-    //
     //$scope.$on('$ionicView.enter', function(e) {
     //});
 
-    $scope.chats = Chats.all();
-    $scope.remove = function (chat) {
-      Chats.remove(chat);
-    };
-
-
-  })
-
-  .controller('TaskDetailCtrl', function ($scope, $stateParams) {
-    $scope.id = $stateParams.taskId;
-    console.log("id: " + $scope.id);
-    console.log("asdfjhasjdfjsdf");
   })
 
   .controller('SettingsCtrl', function ($scope, $http, $mdDialog, $ionicPopup, $localStorage) {
@@ -46,9 +42,9 @@ angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMateria
     console.log("success!!!");
       $scope.patients = response;
     }).error(function(res){
-                console.log("API Zugriff fehlgeschlagen");
-                console.log(res);
-                });
+      console.log("API Zugriff fehlgeschlagen");
+      console.log(res);
+      });
 
     $scope.showPopup = function () {
       // Custom popup
@@ -58,7 +54,7 @@ angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMateria
         subTitle: 'Bitte geben sie Vor-/Nachnamen ein',
         scope: $scope,
         buttons: [
-          {text: 'Cancel'},
+          { text: 'Cancel'},
           { text: '<b>Save</b>', type: 'button-positive',
             onTap: function (e) {
               if (!$scope.input.name) {

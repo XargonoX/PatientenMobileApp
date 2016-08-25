@@ -40,19 +40,19 @@ angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.ser
 
   // Each tab has its own nav history stack:
 
-  .state('tab.therapyTasks', {
-    url: '/therapyTasks',
+  .state('tab.taskList', {
+    url: '/taskList',
     views: {
-      'tab-therapyTasks': {
-        templateUrl: 'templates/tab-therapyTasks.html',
-        controller: 'TherapyTasksCtrl'
+      'tab-taskList': {
+        templateUrl: 'templates/tab-taskList.html',
+        controller: 'TaskListCtrl'
       }
     }
   })
   .state('tab.task-detail', {
     url: '/taskDetail/:taskId',
     views: {
-      'tab-therapyTasks': {
+      'tab-taskList': {
         templateUrl: 'templates/task-detail.html',
         controller: 'TaskDetailCtrl'
       }

@@ -1,15 +1,33 @@
-<!--
-  This template loads for the 'tab.friend-detail' state (app.js)
-  'friend' is a $scope variable created in the FriendsCtrl controller (controllers.js)
-  The FriendsCtrl pulls data from the Friends service (service.js)
-  The Friends service returns an array of friend data
--->
-<ion-view view-title="Detail">
-  <ion-content class="padding">
-    <h1>Task Detail</h1>
-    <h1>Task Detail</h1>
-    <h1>Task Detail</h1>
-    <h1>Task Detail</h1>
+<ion-view view-title="{{currentTask.Pattern}}">
+  <ion-content>
+    <div ng-controller="TaskDetailCtrl">
+      <div class="card">
+        <div class="item item-divider">
+          Beschreibung
+        </div>
+        <div class="item item-text-wrap">
+          {{taskPattern.description}}
+        </div>
+        <div class="item item-text-wrap">
+          <!-- {{currentTask.materials[0]}} -->
+        </div>
+      </div>
 
+      <div class="list card" ng-controller="TaskDetailCtrl">
+        <div class="item item-divider">
+          Angehängt Materialien
+        </div>
+
+        <a ng-repeat="material in taskPattern.materials" href="{{material}}" class="item item-icon-left">
+          <i class="icon ion-home"></i>
+          {{material}}
+        </a>
+      </div>
+
+
+    </div>
   </ion-content>
 </ion-view>
+
+
+
