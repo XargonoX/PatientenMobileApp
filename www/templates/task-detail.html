@@ -1,15 +1,12 @@
 <ion-view view-title="{{currentTask.Pattern}}">
-  <ion-content>
+  <ion-content class="padding">
     <div ng-controller="TaskDetailCtrl">
-      <div class="card">
+      <div class="card" >
         <div class="item item-divider">
           Beschreibung
         </div>
         <div class="item item-text-wrap">
           {{taskPattern.description}}
-        </div>
-        <div class="item item-text-wrap">
-          <!-- {{currentTask.materials[0]}} -->
         </div>
       </div>
 
@@ -18,13 +15,42 @@
           Angehängt Materialien
         </div>
 
-        <a ng-repeat="material in taskPattern.materials" href="{{material}}" class="item item-icon-left">
-          <i class="icon ion-home"></i>
-          {{material}}
-        </a>
+        <ion-item ng-repeat="material in taskPattern.materials"
+                  ng-bind-html="material | linky | hrefToJS"
+                  class="item item-icon-left icon ion-home">
+        </ion-item>
       </div>
 
-
+      <div class="list card" style="..." ng-controller="TaskDetailCtrl">
+        <div class="item item-divider">
+          Erledigungszeitraum
+        </div>
+        <div class="list card" ng-controller="TaskDetailCtrl">
+          <div class="item item-divider">
+            Vorgeschlagenes Zeitinterval
+          </div>
+          <div class="item">
+            Zwischen {{currentTask.TargetContext.FromTime | date : 'HH:mm'}} und
+            {{currentTask.TargetContext.ToTime | date : 'HH:mm'}}
+          </div>
+        </div>
+        <div class="list card" ng-controller="TaskDetailCtrl">
+          <div class="item item-divider">
+            Eigenes Zeitinterval
+          </div>
+          <div class="item">
+            Zwischen
+            <button class="button" ng-click="pickTime()">
+              {{currentTask.ActualContext.FromTime | date : 'HH:mm'}}
+            </button>
+            und
+            <button class="button" ng-click="pickTime()">
+              {{currentTask.ActualContext.ToTime | date : 'HH:mm'}}
+            </button>
+          </div>
+          </div>
+        </div>
+      </div>
     </div>
   </ion-content>
 </ion-view>

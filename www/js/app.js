@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.services', 'ui.router'])
+angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controllers', 'patientApp.services', 'ui.router'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -22,6 +22,17 @@ angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.ser
     }
   });
 })
+
+.config(function (ionicTimePickerProvider) {
+    var timePickerObj = {
+      inputTime: (((new Date()).getHours() * 60 * 60) + ((new Date()).getMinutes() * 60)),
+      format: 12,
+      step: 15,
+      setLabel: 'Set',
+      closeLabel: 'Close'
+    };
+    ionicTimePickerProvider.configTimePicker(timePickerObj);
+  })
 
 .config(function($stateProvider, $urlRouterProvider) {
 

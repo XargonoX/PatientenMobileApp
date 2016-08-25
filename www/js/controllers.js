@@ -1,23 +1,49 @@
 angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMaterial", "ngStorage", "ui.router"])
+  .filter('hrefToJS', function ($sce, $sanitize) {
+    return function (text) {
+      var regex = /href="([\S]+)"/g;
+      var newString = $sanitize(text).replace(regex, "onClick=\"window.open('$1', '_blank', 'location=yes')\"");
+      return $sce.trustAsHtml(newString);
+    }
+  })
 
   .controller('TaskListCtrl', function ($scope, $localStorage, $state) {
     $scope.$storage = $localStorage;
 
+    //$scope.$storage.patient
+
   })
 
-  .controller('TaskDetailCtrl', function ($scope, $stateParams, $localStorage, $http) {
+  .controller('TaskDetailCtrl', function ($scope, $stateParams, $localStorage, $http, ionicTimePicker) {
     $scope.$storage = $localStorage;
     $scope.id = $stateParams.taskId;
-    console.log("id: " + $scope.id);
     $scope.currentTask = $scope.$storage.patient.assignedTherapyTasks[$scope.id];
     $http.get("/therapyTaskAPI/" + $scope.currentTask.PatternID).success(function (response) {
-      console.log("Task Pattern geladen");
       $scope.taskPattern = response;
     }).error(function(res){
       console.log("API Zugriff fehlgeschlagen");
       console.log(res);
       });
-      //console.log("mat: " + $scope.currentTask.materials[0]);
+
+    var ipObj1 = {
+        callback: function (val) {      //Mandatory
+          if (typeof (val) === 'undefined') {
+            console.log('Time not selected');
+          } else {
+            var selectedTime = new Date(val * 1000);
+            console.log('Selected epoch is : ', val, 'and the time is ', selectedTime.getUTCHours(), 'H :', selectedTime.getUTCMinutes(), 'M');
+          }
+        },
+        inputTime: 50400,   //Optional
+            format: 12,         //Optional
+            step: 15,           //Optional
+            setLabel: 'Set2'    //Optional
+      };
+      $scope.pickTime = function(){
+      console.log("gadsfj");
+      ionicTimePicker.openTimePicker(ipObj1);
+      }
+
   })
 
   .controller('ProfileCtrl', function ($scope, Chats) {
@@ -38,6 +64,7 @@ angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMateria
     }
 
     //http://192.168.40.106:3000/
+    //http://192.168.10.100:3000/
     $http.get("/patientAPI").success(function (response) {
     console.log("success!!!");
       $scope.patients = response;
