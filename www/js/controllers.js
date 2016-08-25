@@ -2,11 +2,9 @@ angular.module('patientApp.controllers', [ "ngAnimate", "ngSanitize", "ngMateria
 
   .controller('TherapyTasksCtrl', function ($scope, $localStorage, $state) {
     $scope.$storage = $localStorage;
-    /*
-    $scope.switch = function(index){
-      $state.go('tab.task-detail',index,notify = true);
-    }
-    */
+
+
+
   })
 
   .controller('ProfileCtrl', function ($scope, Chats) {

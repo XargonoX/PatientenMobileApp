@@ -49,6 +49,15 @@ angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.ser
       }
     }
   })
+  .state('tab.task-detail', {
+    url: '/taskDetail/:taskId',
+    views: {
+      'tab-therapyTasks': {
+        templateUrl: 'templates/task-detail.html',
+        controller: 'TaskDetailCtrl'
+      }
+    }
+  })
   .state('tab.profile', {
       url: '/profile',
       views: {
@@ -66,17 +75,7 @@ angular.module('patientApp', ['ionic', 'patientApp.controllers', 'patientApp.ser
         controller: 'SettingsCtrl'
       }
     }
-  })
-  .state('tab.task-detail', {
-    url: '/taskDetail/:taskId',
-    views: {
-      'tab-task-detail': {
-        templateUrl: 'templates/task-detail.html',
-        controller: 'TaskDetailCtrl'
-      }
-    }
-  })
-  ;
+  });
 
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/tab/settings');
