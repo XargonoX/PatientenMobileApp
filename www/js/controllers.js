@@ -7,16 +7,28 @@ angular.module('patientApp.controllers', ["ngAnimate", "ngSanitize", "ngMaterial
     }
   })
 
-  .controller('TaskListCtrl', function ($scope, $http, $localStorage, $state) {
+  .controller('TaskListCtrl', function ($scope, $http, $localStorage, $state, $cordovaLocalNotification) {
     $scope.$storage = $localStorage;
 
     $http.get("/patientAPI/" + $scope.$storage.patient._id).success(function (response) {
       $scope.$storage.patient = response;
     }).error(function (res) {
-      console.log("API Zugriff fehlgeschlagen");
-      console.log(res);
+      console.log("API Zugriff fehlgeschlagen: " + res);
     });
 
+    $scope.addLocalNotification = function(){
+      var alarmTime = new Date();
+      alarmTime.setMinutes(alarmTime.getMinutes()+1);
+      $cordovaLocalNotification.add({
+        id : "12345",
+        date: alarmTime,
+        message: "fu Message alda",
+        autoCancel: true
+        title: "What a Title BOAY"
+      }).then(function () {
+        console.log("Alarm set!");
+      })
+    };
 
   })
 
@@ -24,6 +36,7 @@ angular.module('patientApp.controllers', ["ngAnimate", "ngSanitize", "ngMaterial
     $scope.$storage = $localStorage;
     $scope.id = $stateParams.taskId;
     $scope.$currentTask = $scope.$storage.patient.assignedTherapyTasks[$scope.id];
+
     $http.get("/therapyTaskAPI/" + $scope.$currentTask.PatternID).success(function (response) {
       $scope.taskPattern = response;
     }).error(function (res) {
@@ -34,7 +47,10 @@ angular.module('patientApp.controllers', ["ngAnimate", "ngSanitize", "ngMaterial
     $scope.pickFromTime = function () {
       ionicTimePicker.openTimePicker({
         callback: function (val) {
-          $scope.$currentTask.ActualContext.FromTime = new Date(val * 1000);
+          var newTime = new Date(val);
+          newTime.setHours(newTime.getHours()-1);
+          $scope.$currentTask.ActualContext.FromTime = newTime;
+          console.log($scope.$currentTask.ActualContext.FromTime);
         },
         inputTime: new Date($scope.$currentTask.ActualContext.FromTime).getHours() * 60 * 60 + new Date($scope.$currentTask.ActualContext.FromTime).getMinutes() * 60
       })
@@ -43,7 +59,9 @@ angular.module('patientApp.controllers', ["ngAnimate", "ngSanitize", "ngMaterial
     $scope.pickToTime = function () {
       ionicTimePicker.openTimePicker({
         callback: function (val) {
-          $scope.$currentTask.ActualContext.ToTime = new Date(val * 1000);
+          var newTime = new Date(val);
+          newTime.setHours(newTime.getHours()-1);
+          $scope.$currentTask.ActualContext.ToTime = newTime;
         },
         inputTime: new Date($scope.$currentTask.ActualContext.ToTime).getHours() * 60 * 60 + new Date($scope.$currentTask.ActualContext.ToTime).getMinutes() * 60
       });
@@ -54,7 +72,7 @@ angular.module('patientApp.controllers', ["ngAnimate", "ngSanitize", "ngMaterial
         .success(function(response){
           console.log("eigenes  Zeitinterval auf server gespeichert");
         });
-    }
+    };
   })
 
 

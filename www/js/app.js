@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controllers', 'patientApp.services', 'ui.router'])
+angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controllers', 'patientApp.services', 'ui.router', 'ngCordova'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -27,7 +27,7 @@ angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controlle
     var timePickerObj = {
       inputTime: (((new Date()).getHours() * 60 * 60) + ((new Date()).getMinutes() * 60)),
       format: 24,
-      step: 10,
+      step: 1,
       setLabel: 'Ok',
       closeLabel: 'Abbrechen'
     };
@@ -43,14 +43,13 @@ angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controlle
   $stateProvider
 
   // setup an abstract state for the tabs directive
-    .state('tab', {
+  .state('tab', {
     url: '/tab',
     abstract: true,
     templateUrl: 'templates/tabs.html'
   })
 
   // Each tab has its own nav history stack:
-
   .state('tab.taskList', {
     url: '/taskList',
     views: {
@@ -89,6 +88,6 @@ angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controlle
   });
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/settings');
+  $urlRouterProvider.otherwise('/tab/taskList');
 
 });
