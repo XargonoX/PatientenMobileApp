@@ -1,17 +1,17 @@
 <ion-view view-title="Aufgaben">
   <ion-content class="padding">
-    <ion-list>
-      <h3>Zugewiesene Aufgaben</h3>
-      <div ng-controller="TaskListCtrl">
-        <div ion-view></div>
-        <ion-item  class="item"  ng-repeat="task in $storage.patient.assignedTherapyTasks"
-                   class="item-avatar item-icon-right" type="item-text-wrap" ui-sref="tab.task-detail({taskId : $index})" >
-          <h2>{{task.Pattern}}</h2>
-          <div ng-repeat="weekday in task.ActualContext.OnWeekdays">
-            <p>{{weekday}}</p>
+      <ion-item class="list card" ng-controller="TaskListCtrl">
+        <ion-item ng-repeat="task in $storage.patient.assignedTherapyTasks"
+                  type="item-text-wrap" ui-sref="tab.task-detail({taskId : $index})" >
+
+          <ion-item class="item-divider">{{task.Pattern}}</ion-item>
+
+          <div class="ion-list" style="padding-top: 15px;">
+            <ion-item class="item" style=" padding-top: 0px; margin-bottom: -10px; "
+                      ng-repeat="weekday in task.ActualContext.OnWeekdays">{{weekday}}</ion-item>
           </div>
         </ion-item>
-      </div>
-    </ion-list>
+      </ion-item>
+    <button class="button" ng-click="addLocalNotification()">Notifications erstellen</button>
   </ion-content>
 </ion-view>

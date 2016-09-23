@@ -47,4 +47,66 @@ angular.module('patientApp.services', [])
       return null;
     }
   };
-});
+})
+  .factory('TranslateDayNames', function() {
+    return {
+      trans: function(german) {
+        var english = "Init";
+        switch(german){
+          case "Montag":
+            english = "monday";
+            break;
+          case "Dienstag":
+            english = "tuesday";
+            break;
+          case "Mittwoch":
+            english = "wednesday";
+            break;
+          case "Donnerstag":
+            english = "thursday";
+            break;
+          case "Freitag":
+            english = "friday";
+            break;
+          case "Samstag":
+            english = "saturday";
+            break;
+          case "Sonntag":
+            english = "sunday";
+            break;
+        }
+        return english;
+      }
+  }})
+  .factory('TranslateDayNamesToNumber', function() {
+    return {
+      trans: function(german) {
+        var number;
+        switch(german){
+          case "Montag":
+            number = 1;
+            break;
+          case "Dienstag":
+            number = 2;
+            break;
+          case "Mittwoch":
+            number = 3;
+            break;
+          case "Donnerstag":
+            number = 4;
+            break;
+          case "Freitag":
+            number = 5;
+            break;
+          case "Samstag":
+            number = 6;
+            break;
+          case "Sonntag":
+            number = 7;
+            break;
+        }
+        return number;
+      }
+    };
+  }
+);
