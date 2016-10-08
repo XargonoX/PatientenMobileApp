@@ -6,7 +6,6 @@
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
 angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controllers', 'patientApp.services', 'ui.router', 'ngCordova'])
-
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -85,6 +84,11 @@ angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controlle
         controller: 'SettingsCtrl'
       }
     }
+  })
+  .state('questionnaire-show', {
+    url: '/questionnaire-show/:questionnaireId',
+    templateUrl: 'templates/questionnaire-show.html',
+    controller: 'QuestionnaireShowCtrl'
   });
 
   // if none of the above states are matched, use this as the fallback

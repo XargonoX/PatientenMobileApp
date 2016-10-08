@@ -1,18 +1,28 @@
 <ion-view view-title="Aufgaben">
   <ion-content class="padding">
-      <ion-item class="list card" ng-controller="TaskListCtrl">
-        <ion-item ng-repeat="task in $storage.patient.assignedTherapyTasks"
-                  type="item-text-wrap" ui-sref="tab.task-detail({taskId : $index})" >
+    <ion-item class="list card">
+      <ion-item ng-repeat="task in tasks"
+                type="item-text-wrap" ui-sref="tab.task-detail({taskId : $index})">
 
-          <ion-item class="item-divider">{{task.Pattern}}</ion-item>
-
-          <div class="ion-list" style="padding-top: 15px;">
-            <ion-item class="item" style=" padding-top: 0px; margin-bottom: -10px; "
-                      ng-repeat="weekday in task.ActualContext.OnWeekdays">{{weekday}}</ion-item>
-          </div>
+        <ion-item class="item-divider">
+          {{getTaskById(task.PatternId)[0].name}}
+          <span class="badge">Zwischen: {{task.ActualContext.FromTime | date : 'HH.mm'}} Uhr und {{task.ActualContext.ToTime | date : 'HH.mm'}} Uhr</span>
         </ion-item>
+
+        <div class="ion-list" style="padding-top: 15px;">
+          <ion-item class="item" style=" padding-top: 0px; margin-bottom: -10px; "
+                    ng-repeat="weekday in task.ActualContext.OnWeekdays">{{weekday}}
+          </ion-item>
+        </div>
       </ion-item>
-    <button class="button" ng-click="addLocalNotification()">Notifications erstellen</button>
+    </ion-item>
+    <button class="button" ng-click="addAllLocalNotification()">Notifications erstellen</button>
+
+    <br>
+    <button class="button" ng-click="addSoonNotification()">Soon Notification erstellen</button>
+
+    <br>
     <button class="button" ng-click="cancelLocalNotifications()">Notification abbrechen</button>
+
   </ion-content>
 </ion-view>

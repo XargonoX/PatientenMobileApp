@@ -2,13 +2,17 @@
   "name": "PatientenMobileApp",
   "app_id": "",
   "proxies": [
-      {
-        "path": "/patientAPI",
-        "proxyUrl": "http://localhost:3000/patientAPI/"
-      },
-      {
-        "path": "/therapyTaskAPI",
-        "proxyUrl": "http://localhost:3000/therapyTaskAPI/"
-      }
-    ]
+    {
+      "path": "/patientAPI",
+      "proxyUrl": "http://localhost:3000/patientAPI/"
+    },
+    {
+      "path": "/therapyTaskAPI",
+      "proxyUrl": "http://localhost:3000/therapyTaskAPI/"
+    },
+    {
+      "path": "/questionnaireAPI",
+      "proxyUrl": "http://localhost:3000/questionnaireAPI/"
+    }
+  ]
 }
