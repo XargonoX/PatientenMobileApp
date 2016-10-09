@@ -86,7 +86,7 @@ angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controlle
     }
   })
   .state('questionnaire-show', {
-    url: '/questionnaire-show/:questionnaireId',
+    url: '/questionnaire-show/:questionnaireId?questionId',
     templateUrl: 'templates/questionnaire-show.html',
     controller: 'QuestionnaireShowCtrl'
   });

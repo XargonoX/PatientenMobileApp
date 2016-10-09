@@ -1,5 +1,5 @@
 angular.module('patientApp.controllers',
-  ["ngAnimate", "ngSanitize", "ngMaterial", "ngStorage", "ui.router"])
+  ["ngAnimate", "ngSanitize", "ngMaterial", "ngStorage", "ui.router", "textAngular"])
   .filter('hrefToJS', function ($sce, $sanitize) {
     return function (text) {
       var regex = /href="([\S]+)"/g;
@@ -25,13 +25,13 @@ angular.module('patientApp.controllers',
     $scope.therapyTaskPatterns = therapyTaskApi.all();
     $scope.existingQuestionnaire = questionnaireApi.all();
     $scope.getTaskById = function (TaskId) {
-      return $.grep($localStorage.therapyTaskPatterns, function(e, x){
+      return $.grep($localStorage.therapyTaskPatterns, function (e, x) {
         return e._id == TaskId;
       });
 
     };
     $scope.getQuestionnaireById = function (questionnaireId) {
-      return $.grep($localStorage.existingQuestionnaire, function(e, x){
+      return $.grep($localStorage.existingQuestionnaire, function (e, x) {
         return e._id == questionnaireId;
       });
     };
@@ -72,7 +72,7 @@ angular.module('patientApp.controllers',
             text: "Das Zeitinterval für ihre Übung hat begonnen",
             data: {
               taskPatternId: taskPatternId,
-              questionnaireId : questionnaireId
+              questionnaireId: questionnaireId
             }
           });
           internalTaskId++;
@@ -106,7 +106,7 @@ angular.module('patientApp.controllers',
 
     $rootScope.$on('$cordovaLocalNotification:click',
       function (event, notification, state) {
-        $state.go("questionnaire-show", {questionnaireId : "asdjasjd"});
+        $state.go("questionnaire-show", {questionnaireId: "asdjasjd"});
       });
 
   })
@@ -234,202 +234,269 @@ angular.module('patientApp.controllers',
   //Questionnaire Show Controller
   //******************************************************************************************
 
-  .controller('QuestionnaireShowCtrl', function ($scope, $http, $stateParams, questionnaireApi) {
-    //Hilfsfunktion Quelle http://goessner.net/download/prj/jsonxml/xml2json.js
-    var xml2json = function(xml, tab) {
-      var X = {
-        toObj: function(xml) {
-          var o = {};
-          if (xml.nodeType==1) {   // element node ..
-            if (xml.attributes.length)   // element with attributes  ..
-              for (var i=0; i<xml.attributes.length; i++)
-                o["@"+xml.attributes[i].nodeName] = (xml.attributes[i].nodeValue||"").toString();
-            if (xml.firstChild) { // element has child nodes ..
-              var textChild=0, cdataChild=0, hasElementChild=false;
-              for (var n=xml.firstChild; n; n=n.nextSibling) {
-                if (n.nodeType==1) hasElementChild = true;
-                else if (n.nodeType==3 && n.nodeValue.match(/[^ \f\n\r\t\v]/)) textChild++; // non-whitespace text
-                else if (n.nodeType==4) cdataChild++; // cdata section node
-              }
-              if (hasElementChild) {
-                if (textChild < 2 && cdataChild < 2) { // structured element with evtl. a single text or/and cdata node ..
-                  X.removeWhite(xml);
-                  for (var n=xml.firstChild; n; n=n.nextSibling) {
-                    if (n.nodeType == 3)  // text node
-                      o["#text"] = X.escape(n.nodeValue);
-                    else if (n.nodeType == 4)  // cdata node
-                      o["#cdata"] = X.escape(n.nodeValue);
-                    else if (o[n.nodeName]) {  // multiple occurence of element ..
-                      if (o[n.nodeName] instanceof Array)
-                        o[n.nodeName][o[n.nodeName].length] = X.toObj(n);
-                      else
-                        o[n.nodeName] = [o[n.nodeName], X.toObj(n)];
+  .controller('QuestionnaireShowCtrl',
+    function ($scope, $http, $state, $stateParams, $sessionStorage, $ionicPopup,
+              questionnaireApi, $localStorage, questionnaireHelper) {
+      //Hilfsfunktion Quelle http://goessner.net/download/prj/jsonxml/xml2json.js
+      var xml2json = function (xml, tab) {
+        var X = {
+          toObj: function (xml) {
+            var o = {};
+            if (xml.nodeType == 1) {   // element node ..
+              if (xml.attributes.length)   // element with attributes  ..
+                for (var i = 0; i < xml.attributes.length; i++)
+                  o[xml.attributes[i].nodeName] = (xml.attributes[i].nodeValue || "").toString();
+              if (xml.firstChild) { // element has child nodes ..
+                var textChild = 0, cdataChild = 0, hasElementChild = false;
+                for (var n = xml.firstChild; n; n = n.nextSibling) {
+                  if (n.nodeType == 1) hasElementChild = true;
+                  else if (n.nodeType == 3 && n.nodeValue.match(/[^ \f\n\r\t\v]/)) textChild++; // non-whitespace text
+                  else if (n.nodeType == 4) cdataChild++; // cdata section node
+                }
+                if (hasElementChild) {
+                  if (textChild < 2 && cdataChild < 2) { // structured element with evtl. a single text or/and cdata node ..
+                    X.removeWhite(xml);
+                    for (var n = xml.firstChild; n; n = n.nextSibling) {
+                      if (n.nodeType == 3)  // text node
+                        o["#text"] = X.escape(n.nodeValue);
+                      else if (n.nodeType == 4)  // cdata node
+                        o["#cdata"] = X.escape(n.nodeValue);
+                      else if (o[n.nodeName]) {  // multiple occurence of element ..
+                        if (o[n.nodeName] instanceof Array)
+                          o[n.nodeName][o[n.nodeName].length] = X.toObj(n);
+                        else
+                          o[n.nodeName] = [o[n.nodeName], X.toObj(n)];
+                      }
+                      else  // first occurence of element..
+                        o[n.nodeName] = X.toObj(n);
                     }
-                    else  // first occurence of element..
-                      o[n.nodeName] = X.toObj(n);
+                  }
+                  else { // mixed content
+                    if (!xml.attributes.length)
+                      o = X.escape(X.innerXml(xml));
+                    else
+                      o["#text"] = X.escape(X.innerXml(xml));
                   }
                 }
-                else { // mixed content
+                else if (textChild) { // pure text
                   if (!xml.attributes.length)
                     o = X.escape(X.innerXml(xml));
                   else
                     o["#text"] = X.escape(X.innerXml(xml));
                 }
+                else if (cdataChild) { // cdata
+                  if (cdataChild > 1)
+                    o = X.escape(X.innerXml(xml));
+                  else
+                    for (var n = xml.firstChild; n; n = n.nextSibling)
+                      o["#cdata"] = X.escape(n.nodeValue);
+                }
               }
-              else if (textChild) { // pure text
-                if (!xml.attributes.length)
-                  o = X.escape(X.innerXml(xml));
-                else
-                  o["#text"] = X.escape(X.innerXml(xml));
-              }
-              else if (cdataChild) { // cdata
-                if (cdataChild > 1)
-                  o = X.escape(X.innerXml(xml));
-                else
-                  for (var n=xml.firstChild; n; n=n.nextSibling)
-                    o["#cdata"] = X.escape(n.nodeValue);
-              }
+              if (!xml.attributes.length && !xml.firstChild) o = null;
             }
-            if (!xml.attributes.length && !xml.firstChild) o = null;
-          }
-          else if (xml.nodeType==9) { // document.node
-            o = X.toObj(xml.documentElement);
-          }
-          else
-            alert("unhandled node type: " + xml.nodeType);
-          return o;
-        },
-        toJson: function(o, name, ind) {
-          var json = name ? ("\""+name+"\"") : "";
-          if (o instanceof Array) {
-            for (var i=0,n=o.length; i<n; i++)
-              o[i] = X.toJson(o[i], "", ind+"\t");
-            json += (name?":[":"[") + (o.length > 1 ? ("\n"+ind+"\t"+o.join(",\n"+ind+"\t")+"\n"+ind) : o.join("")) + "]";
-          }
-          else if (o == null)
-            json += (name&&":") + "null";
-          else if (typeof(o) == "object") {
-            var arr = [];
-            for (var m in o)
-              arr[arr.length] = X.toJson(o[m], m, ind+"\t");
-            json += (name?":{":"{") + (arr.length > 1 ? ("\n"+ind+"\t"+arr.join(",\n"+ind+"\t")+"\n"+ind) : arr.join("")) + "}";
-          }
-          else if (typeof(o) == "string")
-            json += (name&&":") + "\"" + o.toString() + "\"";
-          else
-            json += (name&&":") + o.toString();
-          return json;
-        },
-        innerXml: function(node) {
-          var s = ""
-          if ("innerHTML" in node)
-            s = node.innerHTML;
-          else {
-            var asXml = function(n) {
-              var s = "";
-              if (n.nodeType == 1) {
-                s += "<" + n.nodeName;
-                for (var i=0; i<n.attributes.length;i++)
-                  s += " " + n.attributes[i].nodeName + "=\"" + (n.attributes[i].nodeValue||"").toString() + "\"";
-                if (n.firstChild) {
-                  s += ">";
-                  for (var c=n.firstChild; c; c=c.nextSibling)
-                    s += asXml(c);
-                  s += "</"+n.nodeName+">";
+            else if (xml.nodeType == 9) { // document.node
+              o = X.toObj(xml.documentElement);
+            }
+            else
+              alert("unhandled node type: " + xml.nodeType);
+            return o;
+          },
+          toJson: function (o, name, ind) {
+            name = name.replace(":", "");
+            var json = name ? ("\"" + name + "\"") : "";
+            if (o instanceof Array) {
+              for (var i = 0, n = o.length; i < n; i++)
+                o[i] = X.toJson(o[i], "", ind + "\t");
+              json += (name ? ":[" : "[") + (o.length > 1 ? ("\n" + ind + "\t" + o.join(",\n" + ind + "\t") + "\n" + ind) : o.join("")) + "]";
+            }
+            else if (o == null)
+              json += (name && ":") + "null";
+            else if (typeof(o) == "object") {
+              var arr = [];
+              for (var m in o)
+                arr[arr.length] = X.toJson(o[m], m, ind + "\t");
+              json += (name ? ":{" : "{") + (arr.length > 1 ? ("\n" + ind + "\t" + arr.join(",\n" + ind + "\t") + "\n" + ind) : arr.join("")) + "}";
+            }
+            else if (typeof(o) == "string")
+              json += (name && ":") + "\"" + o.toString() + "\"";
+            else
+              json += (name && ":") + o.toString();
+            return json;
+          },
+          innerXml: function (node) {
+            var s = ""
+            if ("innerHTML" in node)
+              s = node.innerHTML;
+            else {
+              var asXml = function (n) {
+                var s = "";
+                if (n.nodeType == 1) {
+                  s += "<" + n.nodeName;
+                  for (var i = 0; i < n.attributes.length; i++)
+                    s += " " + n.attributes[i].nodeName + "=\"" + (n.attributes[i].nodeValue || "").toString() + "\"";
+                  if (n.firstChild) {
+                    s += ">";
+                    for (var c = n.firstChild; c; c = c.nextSibling)
+                      s += asXml(c);
+                    s += "</" + n.nodeName + ">";
+                  }
+                  else
+                    s += "/>";
+                }
+                else if (n.nodeType == 3)
+                  s += n.nodeValue;
+                else if (n.nodeType == 4)
+                  s += "<![CDATA[" + n.nodeValue + "]]>";
+                return s;
+              };
+              for (var c = node.firstChild; c; c = c.nextSibling)
+                s += asXml(c);
+            }
+            return s;
+          },
+          escape: function (txt) {
+            return txt.replace(/[\\]/g, "\\\\")
+              .replace(/[\"]/g, '\\"')
+              .replace(/[\n]/g, '\\n')
+              .replace(/[\r]/g, '\\r');
+          },
+          removeWhite: function (e) {
+            e.normalize();
+            for (var n = e.firstChild; n;) {
+              if (n.nodeType == 3) {  // text node
+                if (!n.nodeValue.match(/[^ \f\n\r\t\v]/)) { // pure whitespace text node
+                  var nxt = n.nextSibling;
+                  e.removeChild(n);
+                  n = nxt;
                 }
                 else
-                  s += "/>";
+                  n = n.nextSibling;
               }
-              else if (n.nodeType == 3)
-                s += n.nodeValue;
-              else if (n.nodeType == 4)
-                s += "<![CDATA[" + n.nodeValue + "]]>";
-              return s;
-            };
-            for (var c=node.firstChild; c; c=c.nextSibling)
-              s += asXml(c);
-          }
-          return s;
-        },
-        escape: function(txt) {
-          return txt.replace(/[\\]/g, "\\\\")
-            .replace(/[\"]/g, '\\"')
-            .replace(/[\n]/g, '\\n')
-            .replace(/[\r]/g, '\\r');
-        },
-        removeWhite: function(e) {
-          e.normalize();
-          for (var n = e.firstChild; n; ) {
-            if (n.nodeType == 3) {  // text node
-              if (!n.nodeValue.match(/[^ \f\n\r\t\v]/)) { // pure whitespace text node
-                var nxt = n.nextSibling;
-                e.removeChild(n);
-                n = nxt;
+              else if (n.nodeType == 1) {  // element node
+                X.removeWhite(n);
+                n = n.nextSibling;
               }
-              else
+              else                      // any other node
                 n = n.nextSibling;
             }
-            else if (n.nodeType == 1) {  // element node
-              X.removeWhite(n);
-              n = n.nextSibling;
-            }
-            else                      // any other node
-              n = n.nextSibling;
+            return e;
           }
-          return e;
-        }
+        };
+        if (xml.nodeType == 9) // document node
+          xml = xml.documentElement;
+        var json = X.toJson(X.toObj(X.removeWhite(xml)), xml.nodeName, "\t");
+        return "{\n" + tab + (tab ? json.replace(/\t/g, tab) : json.replace(/\t|\n/g, "")) + "\n}";
       };
-      if (xml.nodeType == 9) // document node
-        xml = xml.documentElement;
-      var json = X.toJson(X.toObj(X.removeWhite(xml)), xml.nodeName, "\t");
-      return "{\n" + tab + (tab ? json.replace(/\t/g, tab) : json.replace(/\t|\n/g, "")) + "\n}";
-    };
+      console.log("qId: " + $stateParams.questionId);
+      var questionnaireObject = JSON.parse(xml2json($.parseXML(questionnaireApi.get($stateParams.questionnaireId)[0].data), ""));
+      console.log(questionnaireObject);
+      $scope.questionCount = $sessionStorage.questionCount;
+      /*
+       console.log((questionnaireObject));
+       var start = questionnaireHelper.getStart(questionnaireObject);
+       var nextQuestion = questionnaireHelper.getNextQuestion(questionnaireObject, start);
+       console.log(nextQuestion);
+       var possibleAnswers = questionnaireHelper.getPossibleAnswers(questionnaireObject, nextQuestion);
+       console.log(possibleAnswers);
+       var nnQuestion = questionnaireHelper.getNextQuestion(questionnaireObject, possibleAnswers[0]);
+       console.log(nnQuestion);
+       */
+      if (typeof $stateParams.questionId == "undefined") {
+        console.log("is undefinierd");
+        $sessionStorage.questionCount = 1;
+        $scope.question = questionnaireHelper.getNextQuestion(questionnaireObject, questionnaireHelper.getStart(questionnaireObject));
+        console.log("question");
+        console.log($scope.question);
+      } else {
+        $sessionStorage.questionCount++;
+        console.log("qID");
+        console.log($stateParams.questionId);
 
-    $scope.getTaskById = function (TaskId) {
-      return $.grep($localStorage.therapyTaskPatterns, function(e, x){
-        return e._id == TaskId;
-      });
-
-    };
-    $scope.id = $stateParams.questionnaireId;
-    $scope.actualQuestionnaire = questionnaireApi.get($scope.id);
-
-    var questionnaire = $.parseXML($scope.actualQuestionnaire[0].data);
-    var questionnaireObjekt = xml2json(questionnaire, "");
-    console.log(JSON.parse(questionnaireObjekt));
-
-    //console.log("questionnaire Show Ctrl aufgerufen: " + $stateParams.questionnaireId);
-
-    $scope.sideContent = "<p>Hallo Otto</p>";
-
-
-    $scope.goToNextSite = function () {
-
-    }
-  });
-
-
-
-/*
-
-
- console.log(questionnaire);
- var parsedQuestionnaire = $(questionnaire);
- //console.log(parsedQuestionnaire);
- var startEvent = parsedQuestionnaire.find("startEvent");
-
- var firstItem = startEvent.find("outgoing")[0].innerHTML;
- var startEventOut = parsedQuestionnaire.find("sequenceFlow#"+firstItem);
- var firstQuestionName = startEventOut[0].attributes.targetRef;
-
- console.log(firstQuestionName);
- console.log(parsedQuestionnaire.find(firstQuestionName));
+        $scope.question = questionnaireHelper.getQuestionObjById(questionnaireObject, $stateParams.questionId);
+        console.log("question");
+        console.log($scope.question);
+      }
+      $scope.questionType = questionnaireHelper.getQuestionType($scope.question);
+      console.log("questionType");
+      console.log($scope.questionType);
+      $scope.possibleAnswers = questionnaireHelper.getPossibleAnswers(questionnaireObject, $scope.question);
+      console.log("possibleAnswers");
+      console.log($scope.possibleAnswers);
 
 
- var firstQuestion = startEventOut.find("targetRef");
- console.log(firstQuestion);
+      $scope.hideSingleQuestion = true;
+      $scope.hideMultiQuestion = true;
+      $scope.hideRatingQuestion = true;
+      $scope.hideTextQuestion = true;
+      $scope.choiceId = "nix";
 
+      if ($scope.questionType == "single") {
+        $scope.hideSingleQuestion = false;
+        $scope.answerAdapter = [{
+          answerId : "",
+          questionText : "",
+          checked : false
+        }];
+      }
+      else if ($scope.questionType == "multi") {
+        $scope.hideMultiQuestion = false;
+        $scope.answerAdapter = [];
+        for (var i = 0; i < $scope.possibleAnswers.length; i++) {
+          $scope.answerAdapter.push({
+            text: $scope.possibleAnswers[i].name,
+            checked: false
+          })
+        }
+      }
+      else if ($scope.questionType == "rating") {
+        $scope.hideRatingQuestion = false;
+        $scope.answerAdapter = [];
+        for (var i = 0; i < $scope.possibleAnswers.length; i++) {
+          $scope.answerAdapter.push({
+            text: $scope.possibleAnswers[i].name,
+            value: 50
+          })
+        }
+      }
+      else if ($scope.questionType == "text") {
+        $scope.hideTextQuestion = false;
+        $scope.answerAdapter = [];
+        $scope.choiceId = $scope.possibleAnswers[0].id;
+        for (var i = 0; i < $scope.possibleAnswers.length; i++) {
+          $scope.answerAdapter.push({
+            text: $scope.possibleAnswers[i].name,
+            answer: "Bitte antwort hier eintragen"
+          })
+        }
 
- */
+      }
+
+      $scope.goToNextSite = function () {
+        if($scope.choiceId === "") {
+          $scope.showAlert = function () {
+            var alertPopup = $ionicPopup.alert({
+              title: 'Nichts ausgewählt...',
+              template: 'Bitte wählen sie eine Antwort!'
+            });
+          };
+        } else {
+          console.log($scope.choiceId);
+          var choosenAnswerObj = questionnaireHelper.getAnswerObjById(questionnaireObject, $scope.choiceId);
+          console.log(choosenAnswerObj);
+          var nxtQuestion = questionnaireHelper.getNextQuestion(questionnaireObject,choosenAnswerObj);
+          console.log("nQu");
+          console.log(nxtQuestion);
+          var nxtId = nxtQuestion.id;
+          console.log("nxtId");
+          console.log(nxtId);
+          $state.go("questionnaire-show", {
+            questionnaireId: "57e795d2db97f7bd0ee6564a",
+            questionId: nxtId
+          });
+        }
+
+      }
+    });
+
 
 

@@ -1,6 +1,39 @@
 <ion-view view-title="Fragebogen">
   <ion-content class="padding">
-    <div ng-bind-html="sideContent"></div>
+    <div class="bar bar-header bar-stable"><h1 class="title">Frage {{questionCount}}</h1></div>
+    <br><br><br>
+    <h4>{{question.name}}</h4>
+    <br>
 
+
+    <ion-list ng-hide="hideSingleQuestion">
+        <ion-radio ng-repeat="answer in possibleAnswers"
+                   ng-model="$parent.$parent.choiceId"
+                   ng-value="answer.id">{{answer.name}}
+        </ion-radio>
+    </ion-list>
+
+    <ion-list ng-repeat="answer in answerAdapter" ng-hide="hideMultiQuestion">
+      <ion-checkbox ng-model="answer.checked">{{answer.text}}</ion-checkbox>
+    </ion-list>
+
+    <ion-list ng-repeat="answer in answerAdapter" ng-hide="hideRatingQuestion">
+      <label>{{answer.text}}</label>
+      <div class="item range">
+        <i class="icon ion-volume-low"></i>
+        <input type="range" min="0" max="100" value="answer.value">
+        <i class="icon ion-volume-high"></i>
+      </div>
+    </ion-list>
+
+    <div ng-repeat="answer in possibleAnswers" ng-hide="hideTextQuestion">
+      <label>{{answer.name}}</label>
+      <label class="item item-input">
+      <input type="text"  ng-model="$parent.$parent.choiceId"/>
+      </label>
+    </div>
+
+    <br><br><br><br><br>
+    <div class="button" ng-click="goToNextSite()">Nächste Frage</div>
   </ion-content>
 </ion-view>
