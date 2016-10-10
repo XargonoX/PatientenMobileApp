@@ -13,6 +13,10 @@
     {
       "path": "/questionnaireAPI",
       "proxyUrl": "http://localhost:3000/questionnaireAPI/"
+    },
+    {
+      "path": "/answeredQuestionnaireApi",
+      "proxyUrl": "http://localhost:3000/answeredQuestionnaireApi/"
     }
   ]
 }

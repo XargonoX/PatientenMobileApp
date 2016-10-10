@@ -236,7 +236,7 @@ angular.module('patientApp.controllers',
 
   .controller('QuestionnaireShowCtrl',
     function ($scope, $http, $state, $stateParams, $sessionStorage, $ionicPopup,
-              questionnaireApi, $localStorage, questionnaireHelper) {
+              questionnaireApi, $localStorage, questionnaireHelper, answeredQuestionnaireApi) {
       //Hilfsfunktion Quelle http://goessner.net/download/prj/jsonxml/xml2json.js
       var xml2json = function (xml, tab) {
         var X = {
@@ -387,111 +387,101 @@ angular.module('patientApp.controllers',
         var json = X.toJson(X.toObj(X.removeWhite(xml)), xml.nodeName, "\t");
         return "{\n" + tab + (tab ? json.replace(/\t/g, tab) : json.replace(/\t|\n/g, "")) + "\n}";
       };
-      console.log("qId: " + $stateParams.questionId);
       var questionnaireObject = JSON.parse(xml2json($.parseXML(questionnaireApi.get($stateParams.questionnaireId)[0].data), ""));
       console.log(questionnaireObject);
       $scope.questionCount = $sessionStorage.questionCount;
-      /*
-       console.log((questionnaireObject));
-       var start = questionnaireHelper.getStart(questionnaireObject);
-       var nextQuestion = questionnaireHelper.getNextQuestion(questionnaireObject, start);
-       console.log(nextQuestion);
-       var possibleAnswers = questionnaireHelper.getPossibleAnswers(questionnaireObject, nextQuestion);
-       console.log(possibleAnswers);
-       var nnQuestion = questionnaireHelper.getNextQuestion(questionnaireObject, possibleAnswers[0]);
-       console.log(nnQuestion);
-       */
       if (typeof $stateParams.questionId == "undefined") {
-        console.log("is undefinierd");
-        $sessionStorage.questionCount = 1;
-        $scope.question = questionnaireHelper.getNextQuestion(questionnaireObject, questionnaireHelper.getStart(questionnaireObject));
-        console.log("question");
-        console.log($scope.question);
+        $sessionStorage.answeredQuestions = [];
+        $scope.question = questionnaireHelper.getNextQuestionObj(questionnaireObject, questionnaireHelper.getStart(questionnaireObject));
       } else {
-        $sessionStorage.questionCount++;
-        console.log("qID");
-        console.log($stateParams.questionId);
-
         $scope.question = questionnaireHelper.getQuestionObjById(questionnaireObject, $stateParams.questionId);
-        console.log("question");
-        console.log($scope.question);
       }
       $scope.questionType = questionnaireHelper.getQuestionType($scope.question);
-      console.log("questionType");
-      console.log($scope.questionType);
       $scope.possibleAnswers = questionnaireHelper.getPossibleAnswers(questionnaireObject, $scope.question);
-      console.log("possibleAnswers");
-      console.log($scope.possibleAnswers);
-
 
       $scope.hideSingleQuestion = true;
       $scope.hideMultiQuestion = true;
       $scope.hideRatingQuestion = true;
       $scope.hideTextQuestion = true;
-      $scope.choiceId = "nix";
+      $scope.delectedAnswerId = "nix";
 
+      $scope.radioChanged = function (answerId) {
+        console.log("radioChanged");
+        $scope.selectedAnswerId = answerId;
+      };
       if ($scope.questionType == "single") {
         $scope.hideSingleQuestion = false;
         $scope.answerAdapter = [{
-          answerId : "",
-          questionText : "",
-          checked : false
+          type : "single",
+          answerText: "",
+          questionText: $scope.question.name
         }];
       }
       else if ($scope.questionType == "multi") {
         $scope.hideMultiQuestion = false;
+        $scope.selectedAnswerId = $scope.possibleAnswers[0].id;
         $scope.answerAdapter = [];
         for (var i = 0; i < $scope.possibleAnswers.length; i++) {
           $scope.answerAdapter.push({
-            text: $scope.possibleAnswers[i].name,
+            questionText: $scope.question.name,
+            type : "multi",
+            answerText: $scope.possibleAnswers[i].name,
             checked: false
           })
         }
       }
       else if ($scope.questionType == "rating") {
         $scope.hideRatingQuestion = false;
+        $scope.selectedAnswerId = $scope.possibleAnswers[0].id;
         $scope.answerAdapter = [];
         for (var i = 0; i < $scope.possibleAnswers.length; i++) {
           $scope.answerAdapter.push({
-            text: $scope.possibleAnswers[i].name,
+            questionText: $scope.question.name,
+            type : "rating",
+            answerText: $scope.possibleAnswers[i].name,
             value: 50
           })
         }
       }
       else if ($scope.questionType == "text") {
         $scope.hideTextQuestion = false;
+        $scope.selectedAnswerId = $scope.possibleAnswers[0].id;
         $scope.answerAdapter = [];
-        $scope.choiceId = $scope.possibleAnswers[0].id;
         for (var i = 0; i < $scope.possibleAnswers.length; i++) {
           $scope.answerAdapter.push({
-            text: $scope.possibleAnswers[i].name,
-            answer: "Bitte antwort hier eintragen"
+            questionText: $scope.question.name,
+            type : "text",
+            answerText: $scope.possibleAnswers[i].name
           })
         }
-
       }
 
+      $scope.showAlert = function() {
+        var alertPopup = $ionicPopup.alert({
+          title: 'Vielen Dank!',
+          template: 'Das war die letzte Frage viele dank für das ausfüllen des Fragebogens.'
+        });
+
+        alertPopup.then(function(res) {
+          answeredQuestionnaireApi.create({
+            questionnaireId : $stateParams.questionnaireId,
+            patientId : $localStorage.patient._id,
+            answeredQuestions : $sessionStorage.answeredQuestions
+          });
+          $state.go("tab.taskList");
+        });
+      };
+
       $scope.goToNextSite = function () {
-        if($scope.choiceId === "") {
-          $scope.showAlert = function () {
-            var alertPopup = $ionicPopup.alert({
-              title: 'Nichts ausgewählt...',
-              template: 'Bitte wählen sie eine Antwort!'
-            });
-          };
-        } else {
-          console.log($scope.choiceId);
-          var choosenAnswerObj = questionnaireHelper.getAnswerObjById(questionnaireObject, $scope.choiceId);
-          console.log(choosenAnswerObj);
-          var nxtQuestion = questionnaireHelper.getNextQuestion(questionnaireObject,choosenAnswerObj);
-          console.log("nQu");
-          console.log(nxtQuestion);
-          var nxtId = nxtQuestion.id;
-          console.log("nxtId");
-          console.log(nxtId);
+        var selectedAnswerObj = questionnaireHelper.getAnswerObjById(questionnaireObject, $scope.selectedAnswerId);
+        var nextQuestion = questionnaireHelper.getNextQuestionObj(questionnaireObject, selectedAnswerObj);
+        if (typeof nextQuestion.outgoing == "undefined") {
+          $scope.showAlert();
+        } else{
+          $sessionStorage.answeredQuestions.push($scope.answerAdapter);
           $state.go("questionnaire-show", {
-            questionnaireId: "57e795d2db97f7bd0ee6564a",
-            questionId: nxtId
+            questionnaireId: $stateParams.questionnaireId,
+            questionId: nextQuestion.id
           });
         }
 

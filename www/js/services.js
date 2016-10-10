@@ -3,7 +3,6 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
     url: "" //http://192.168.40.105:3000/
   })
   .factory('patientApi', function (ApiServer, $http, $localStorage) {
-
     return {
       all: function () {
         $http.get(ApiServer.url + "patientAPI").success(function (response) {
@@ -42,7 +41,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       create: function (patient) {
-        $http.post("http://localhost:3000/patientAPI", patient)
+        $http.post("patientAPI/", patient)
           .success(function (response) {
             console.log("Neuen Patient angelegt");
             return true;
@@ -52,7 +51,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       update: function (patientId, patient) {
-        $http.put("http://localhost:3000/patientAPI/" + patientId, patient)
+        $http.put("patientAPI/" + patientId, patient)
           .success(function (response) {
             console.log("Patient editiert");
             return true;
@@ -64,33 +63,20 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
     }
   })
   .factory('therapyTaskApi', function (ApiServer, $http, $localStorage) {
-
-    function makeRequest(callback) {
-      $.ajax({
-        url: "therapyTaskAPI",
-        //data: {id: id},
-        complete: callback
-        //async : false
-      });
-    }
-
-    makeRequest(function (data) {
-      $localStorage.therapyTaskPatterns = JSON.parse(data.responseText);
-    });
     return {
       all: function () {
         return $localStorage.therapyTaskPatterns;
       },
-      get: function (patientId) {
-        $http.get(ApiServer.url + "therapyTaskAPI/" + patientId).success(function (response) {
+      get: function (therapyTaskId) {
+        $http.get(ApiServer.url + "therapyTaskAPI/" + therapyTaskId).success(function (response) {
           return response;
         }).error(function (err) {
           console.log("therapyTask API Fehler!");
           return err;
         });
       },
-      remove: function (patientId) {
-        $http.delete(ApiServer.url + "therapyTaskAPI/" + patientId).success(function (response) {
+      remove: function (therapyTaskId) {
+        $http.delete(ApiServer.url + "therapyTaskAPI/" + therapyTaskId).success(function (response) {
           console.log("therapyTask gelöscht");
           return true;
         }).error(function () {
@@ -98,23 +84,23 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
           return false;
         });
       },
-      create: function (patient) {
-        $http.post("http://localhost:3000/therapyTaskAPI", patient)
+      create: function (therapyTask) {
+        $http.post("therapyTaskAPI/", therapyTask)
           .success(function (response) {
-            console.log("Neuer Questionnaire angelegt");
+            console.log("Neuer therapyTask angelegt");
             return true;
           }).error(function () {
-          console.log("patient API Fehler!");
+          console.log("therapyTask API Fehler!");
           return false;
         });
       },
-      update: function (patientId, patient) {
-        $http.put("http://localhost:3000/therapyTaskAPI/" + patientId, patient)
+      update: function (therapyTaskId, therapyTask) {
+        $http.put("therapyTaskAPI/" + therapyTaskId, therapyTask)
           .success(function (response) {
-            console.log("Questionnaire editiert");
+            console.log("therapyTask editiert");
             return true;
           }).error(function () {
-          console.log("patient API Fehler!");
+          console.log("therapyTask API Fehler!");
           return false;
         });
       }
@@ -124,44 +110,91 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
     $http.get(ApiServer.url + "questionnaireAPI").success(function (response) {
       $localStorage.allquestionnaires = response;
     }).error(function (err) {
-      console.log("therapyTask API Fehler!");
+      console.log("Questionnaire API Fehler!");
       return err;
     });
     return {
       all: function () {
         return $localStorage.allquestionnaires;
       },
-      get: function (patientId) {
+      get: function (questionnaireId) {
         return $.grep($localStorage.allquestionnaires, function (e, x) {
-          return e._id == patientId;
+          return e._id == questionnaireId;
         });
       },
-      remove: function (patientId) {
-        $http.delete(ApiServer.url + "questionnaireAPI/" + patientId).success(function (response) {
-          console.log("therapyTask gelöscht");
+      remove: function (questionnaireId) {
+        $http.delete(ApiServer.url + "questionnaireAPI/" + questionnaireId).success(function (response) {
+          console.log("Questionnaire gelöscht");
           return true;
         }).error(function () {
-          console.log("therapyTask API Fehler!");
+          console.log("Questionnaire API Fehler!");
           return false;
         });
       },
-      create: function (patient) {
-        $http.post(ApiServer.url + "questionnaireAPI", patient)
+      create: function (questionnaire) {
+        $http.post(ApiServer.url + "questionnaireAPI", questionnaire)
           .success(function (response) {
-            console.log("Neuer Questionnaire angelegt");
+            console.log("Neues Questionnaire angelegt");
             return true;
           }).error(function () {
-          console.log("patient API Fehler!");
+          console.log("Questionnaire API Fehler!");
           return false;
         });
       },
-      update: function (patientId, patient) {
-        $http.put(ApiServer.url + "questionnaireAPI/" + patientId, patient)
+      update: function (questionnaireId, questionnaire) {
+        $http.put(ApiServer.url + "questionnaireAPI/" + questionnaireId, questionnaire)
           .success(function (response) {
             console.log("Questionnaire editiert");
             return true;
           }).error(function () {
-          console.log("patient API Fehler!");
+          console.log("Questionnaire API Fehler!");
+          return false;
+        });
+      }
+    }
+  })
+  .factory('answeredQuestionnaireApi', function (ApiServer, $http, $localStorage) {
+    $http.get(ApiServer.url + "answeredQuestionnaireApi").success(function (response) {
+      $localStorage.allAnsweredQuestionnaires = response;
+    }).error(function (err) {
+      console.log("AnsweredQuestionnaire API Fehler!");
+      return err;
+    });
+    return {
+      all: function () {
+        return $localStorage.allAnsweredQuestionnaires;
+      },
+      get: function (answeredQuestionnaireId) {
+        return $.grep($localStorage.allAnsweredQuestionnaires, function (e, x) {
+          return e._id == answeredQuestionnaireId;
+        });
+      },
+      remove: function (answeredQuestionnaireId) {
+        $http.delete(ApiServer.url + "answeredQuestionnaireApi/" + answeredQuestionnaireId).success(function (response) {
+          console.log("AnsweredQuestionnaire gelöscht");
+          return true;
+        }).error(function () {
+          console.log("AnsweredQuestionnaire API Fehler!");
+          return false;
+        });
+      },
+      create: function (answeredQuestionnaire) {
+        $http.post(ApiServer.url + "/answeredQuestionnaireApi", answeredQuestionnaire)
+          .success(function (response) {
+            console.log("Neue AnsweredQuestionnaire angelegt");
+            return true;
+          }).error(function () {
+          console.log("AnsweredQuestionnaire API Fehler!");
+          return false;
+        });
+      },
+      update: function (answeredQuestionnaireId, answeredQuestionnaire) {
+        $http.put(ApiServer.url + "/answeredQuestionnaireApi" + answeredQuestionnaireId, answeredQuestionnaire)
+          .success(function (response) {
+            console.log("AnsweredQuestionnaire editiert");
+            return true;
+          }).error(function () {
+          console.log("AnsweredQuestionnaire API Fehler!");
           return false;
         });
       }
@@ -237,12 +270,12 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
       var findSequenceFlowById = function (questionnaireObject, SeFlowId) {
         return $.grep(questionnaireObject.definitions.process.sequenceFlow, function (e) {
           return e.id == SeFlowId;
-        });
+        })[0];
       };
       var findAnswerById = function (questionnaireObject, AnswerId) {
         return $.grep(questionnaireObject.definitions.process.task, function (e) {
           return e.id == AnswerId;
-        });
+        })[0];
       };
       var findQuestionById = function (questionnaireObject, QuestionId) {
         return $.grep(questionnaireObject.definitions.process.exclusiveGateway, function (e) {
@@ -252,12 +285,10 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
       var findQuestionType = function (Question) {
 
         if (isAnArray(Question.extensionElements.camundaproperties.camundaproperty)) {
-          console.log("isArray");
           return $.grep(Question.extensionElements.camundaproperties.camundaproperty, function (e) {
             return e.name == "type";
           })[0].value;
         } else {
-          console.log("isKoiArray");
           if (Question.extensionElements.camundaproperties.camundaproperty.name == "type") {
             return Question.extensionElements.camundaproperties.camundaproperty.value;
           }
@@ -269,10 +300,15 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
           return questionnaireObject.definitions.process.startEvent;
         },
 
-        getNextQuestion: function (questionnaireObject, answerObj) {
+        getNextQuestionObj: function (questionnaireObject, answerObj) {
           var flowId = answerObj.outgoing;
-          var seFlow = findSequenceFlowById(questionnaireObject, flowId);
-          return findQuestionById(questionnaireObject, seFlow[0].targetRef);
+          var sequenceFlow = findSequenceFlowById(questionnaireObject, flowId);
+          if(sequenceFlow.targetRef.search("EndEvent") > -1){
+            return questionnaireObject.definitions.process.endEvent;
+          } else {
+            return findQuestionById(questionnaireObject, sequenceFlow.targetRef);
+          }
+
         },
 
         getQuestionType: function (inQuestion) {
@@ -281,26 +317,24 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
 
         getPossibleAnswers: function (questionnaireObject, inQuestion) {
           var result = [];
-          if(isAnArray(inQuestion.outgoing)){
-            console.log("isAhNArray");
-            console.log(typeof inQuestion.outgoing);
+          if (isAnArray(inQuestion.outgoing)) {
             for (var i = 0; i < inQuestion.outgoing.length; i++) {
               result.push(findAnswerById(questionnaireObject,
-                findSequenceFlowById(questionnaireObject, inQuestion.outgoing[i])[0].targetRef)[0]);
+                findSequenceFlowById(questionnaireObject, inQuestion.outgoing[i]).targetRef));
             }
           } else {
             result.push(findAnswerById(questionnaireObject,
-              findSequenceFlowById(questionnaireObject, inQuestion.outgoing)[0].targetRef)[0]);
+              findSequenceFlowById(questionnaireObject, inQuestion.outgoing).targetRef));
           }
-
           return result;
         },
+
         getQuestionObjById: function (questionnaireObject, inQuestionId) {
           return findQuestionById(questionnaireObject, inQuestionId);
-
         },
+
         getAnswerObjById: function (questionnaireObject, inAnswerId) {
-          return findAnswerById(questionnaireObject, inAnswerId)[0];
+          return findAnswerById(questionnaireObject, inAnswerId);
 
         }
       };
