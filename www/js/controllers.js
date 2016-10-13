@@ -15,81 +15,95 @@ angular.module('patientApp.controllers',
 
   .controller('TaskListCtrl', function (TranslateDayNamesToNumber, $scope, $rootScope,
                                         $http, $localStorage, $state,
-                                        $cordovaLocalNotification,
+                                        $cordovaLocalNotification, $ionicLoading,
                                         patientApi, therapyTaskApi, questionnaireApi) {
-
-
     $scope.$storage = $localStorage;
+    $scope.$on("$ionicView.beforeEnter", function(event, data){
+      $ionicLoading.show({
+        template: 'Daten werden vom Server geladen...'
+      }).then(function(){
+        $scope.patient = patientApi.getSelected();
+        $scope.therapyTaskPatterns = therapyTaskApi.all(false);
+        $scope.existingQuestionnaire = questionnaireApi.all();
+      });
+        $ionicLoading.hide();
+    });
+
     //Patientendaten abrufen
-    $scope.patient = patientApi.me();
-    $scope.therapyTaskPatterns = therapyTaskApi.all();
-    $scope.existingQuestionnaire = questionnaireApi.all();
+
     $scope.getTaskById = function (TaskId) {
-      return $.grep($localStorage.therapyTaskPatterns, function (e, x) {
+      return $.grep(therapyTaskApi.all(false), function (e, x) {
         return e._id == TaskId;
       });
 
     };
     $scope.getQuestionnaireById = function (questionnaireId) {
-      return $.grep($localStorage.existingQuestionnaire, function (e, x) {
+      return $.grep(questionnaireApi.all(), function (e, x) {
         return e._id == questionnaireId;
       });
     };
 
     $scope.tasks = $scope.$storage.patient.assignedTherapyTasks;
-
-    $scope.addLocalNotification = function () {
-      //Daten der bevorstehenden Tasks berechnen
-      var taskDateContainer = [];
-      var internalTaskId = 0;
-      var notifications = [];
-      for (var i = 0; i < $scope.tasks.length; i++) {
-        var taskTime = new Date($scope.tasks[i].ActualContext.FromTime);
-        for (var d = 0; d < $scope.tasks[i].ActualContext.OnWeekdays.length; d++) {
-          var taskDate = new Date();
-          taskDate.setHours(taskTime.getHours());
-          taskDate.setMinutes(taskTime.getMinutes());
-          taskDate.setSeconds(0);
-          var day = TranslateDayNamesToNumber.trans($scope.tasks[i].ActualContext.OnWeekdays[d]);
-          var dayDistance = 0;
-          if (taskDate.getDay() > day) {
-            var temp = 7 - taskDate.getDay();
-            dayDistance = day + temp;
-          } else {
-            dayDistance = day - taskDate.getDay();
-          }
-          taskDate.setDate(taskDate.getDate() + dayDistance);
-          //console.log("taskDate aft: " + taskDate + "(dayDist: " + dayDistance);
-          taskDateContainer.push(taskDate);
-          var taskTitle = $scope.tasks[i].Pattern;
-          var taskPatternId = $scope.tasks[i].PatternId;
-          var questionnaireId = $scope.tasks[i].assignedQuestionnaire;
-          notifications.push({
-            id: internalTaskId,
-            at: taskDate,
-            //every : "week",
-            title: taskTitle,
-            text: "Das Zeitinterval für ihre Übung hat begonnen",
-            data: {
-              taskPatternId: taskPatternId,
-              questionnaireId: questionnaireId
-            }
-          });
-          internalTaskId++;
+ $scope.addAllLocalNotification = function () {
+    //Daten der bevorstehenden Tasks berechnen
+    var taskDateContainer = [];
+    var internalTaskId = 0;
+    var notifications = [];
+    for (var i = 0; i < $scope.tasks.length; i++) {
+      var taskTime = new Date($scope.tasks[i].ActualContext.FromTime);
+      for (var d = 0; d < $scope.tasks[i].ActualContext.OnWeekdays.length; d++) {
+        var taskDate = new Date();
+        taskDate.setHours(taskTime.getHours());
+        taskDate.setMinutes(taskTime.getMinutes());
+        taskDate.setSeconds(0);
+        var day = TranslateDayNamesToNumber.trans($scope.tasks[i].ActualContext.OnWeekdays[d]);
+        var dayDistance = 0;
+        if (taskDate.getDay() > day) {
+          var temp = 7 - taskDate.getDay();
+          dayDistance = day + temp;
+        } else {
+          dayDistance = day - taskDate.getDay();
         }
+        taskDate.setDate(taskDate.getDate() + dayDistance);
+        console.log(taskDate);
+        //console.log("taskDate aft: " + taskDate + "(dayDist: " + dayDistance);
+        taskDateContainer.push(taskDate);
+        var taskTitle = $scope.tasks[i].Pattern;
+        var taskPatternId = $scope.tasks[i].PatternId;
+        var questionnaireId = $scope.tasks[i].assignedQuestionnaire;
+        console.log("questionnaireId: " + questionnaireId);
+
+        //notifications.push
+        $cordovaLocalNotification.schedule({
+          id: internalTaskId,
+          //every : "week",
+          title: taskTitle,
+          text: "Das Zeitinterval für ihre Übung hat begonnen",
+          at: taskDate,
+          data: {
+            taskPatternId: taskPatternId,
+            questionnaireId: questionnaireId
+          }
+        });
+        internalTaskId++;
       }
-      $scope.addAllLocalNotification = function () {
+    }
+    };
+/*
+    $scope.addAllLocalNotification = function () {
+      console.log("addAll");
+      notifications[0].at = taskDate;
+      console.log(notifications);
+
         $cordovaLocalNotification.schedule(notifications).then(function () {
           console.log("Notifications erstellt");
         });
-      }
-    };
-
+    }
     $scope.cancelLocalNotifications = function () {
       $cordovaLocalNotification.cancelAll();
       console.log("Nots geloescht");
     };
-
+*/
     $scope.addSoonNotification = function () {
       var soonDate = new Date();
       soonDate.setSeconds(soonDate.getSeconds() + 15);
@@ -99,14 +113,14 @@ angular.module('patientApp.controllers',
         text: "Des geht ja!",
         at: soonDate,
         data: {
-          QuestionnaireId: "asdasd"
+          QuestionnaireId: "57e795d2db97f7bd0ee6564a"
         }
       });
     };
 
     $rootScope.$on('$cordovaLocalNotification:click',
       function (event, notification, state) {
-        $state.go("questionnaire-show", {questionnaireId: "asdjasjd"});
+        $state.go("questionnaire-show", {questionnaireId: notification.data.QuestionnaireId});
       });
 
   })
@@ -115,16 +129,14 @@ angular.module('patientApp.controllers',
   //Task Details Controller
   //******************************************************************************************
 
-  .controller('TaskDetailCtrl', function ($scope, $stateParams, $localStorage, $http, $state, ionicTimePicker, ApiServer) {
-    $scope.$storage = $localStorage;
-    $scope.id = $stateParams.taskId;
-    $scope.$currentTask = $scope.$storage.patient.assignedTherapyTasks[$scope.id];
+  .controller('TaskDetailCtrl', function ($scope, $stateParams, $localStorage,
+                                          $http, $state, $ionicPopup, ApiServer,
+                                          ionicTimePicker, therapyTaskApi, patientApi) {
 
-    $http.get(ApiServer.url + "therapyTaskAPI/" + $scope.$currentTask.PatternId).success(function (response) {
-      $scope.taskPattern = response;
-    }).error(function (res) {
-      console.log("API Zugriff fehlgeschlagen");
-      console.log(res);
+    $scope.$on("$ionicView.beforeEnter", function(event, data){
+      $scope.patient = patientApi.getSelected();
+      $scope.$currentTask = $scope.patient.assignedTherapyTasks[$stateParams.taskId];
+      $scope.taskPattern = therapyTaskApi.get($scope.$currentTask.PatternId);
     });
 
     $scope.pickFromTime = function () {
@@ -152,12 +164,17 @@ angular.module('patientApp.controllers',
     };
 
     $scope.saveActualTime = function () {
-      $http.put(ApiServer.url + "patientAPI/" + $scope.$storage.patient._id, $scope.$storage.patient)
-        .success(function (response) {
-          console.log("eigenes  Zeitinterval auf server gespeichert");
-          //$state.go("/tab/taskList");
+      if(patientApi.saveSelected($scope.patient) === true){
+        $ionicPopup.alert({
+          title: 'Wurde gespeichert'
         });
-    };
+      $state.go("/tab/taskList");
+      } else {
+        $ionicPopup.alert({
+          title: 'Speichern auf server Fehlgeschlagen'
+        });
+      }
+    }
   })
 
   //******************************************************************************************
@@ -173,24 +190,22 @@ angular.module('patientApp.controllers',
   //Settings Controller
   //******************************************************************************************
 
-  .controller('SettingsCtrl', function ($scope, $http, $mdDialog, $ionicPopup, $localStorage, ApiServer) {
+  .controller('SettingsCtrl', function ($scope, $http, $mdDialog, $ionicPopup,
+                                        $localStorage, ApiServer, therapyTaskApi, patientApi) {
+
+    $scope.$on("$ionicView.beforeEnter", function(event, data){
+      therapyTaskApi.all(true);
+      patientApi.getAll();
+
+    });
     $scope.input = {};
     $scope.input.name = "Heiko Foschum";
-    $scope.patients = {};
     $scope.isNameFormDisabled = false;
-    $scope.patient = {};
-    $scope.$storage = $localStorage;
-    if (typeof $scope.$storage.patient != "undefined") {
+    $scope.patient = patientApi.getSelected();
+    console.log($scope.patient);
+    if (patientApi.getSelected() != "undefined") {
       //$scope.isNameFormDisabled = true;
     }
-
-    $http.get(ApiServer.url + "patientAPI").success(function (response) {
-      console.log("success!!!");
-      $scope.patients = response;
-    }).error(function (res) {
-      console.log("API Zugriff fehlgeschlagen");
-      console.log(res);
-    });
 
     $scope.showPopup = function () {
       // Custom popup
@@ -207,13 +222,12 @@ angular.module('patientApp.controllers',
               if (!$scope.input.name) {
                 e.preventDefault();  //don't allow the user to close unless he enters model...
               } else {
-                console.log("lalala");
-                $scope.searchResult = {};
-                $scope.searchResult = $.grep($scope.patients, function (patients) {
+                $scope.searchResult = $.grep(patientApi.getAll(), function (patients) {
                   return patients.name == $scope.input.name;
                 });
                 if ($scope.searchResult.length > 0) {
-                  $scope.$storage.patient = $scope.searchResult[0];
+                  patientApi.saveSelected($scope.searchResult[0]);
+                  $scope.patient = $scope.searchResult[0];
                   $scope.isNameFormDisabled = true;
                 }
                 return $scope.input.name;
@@ -226,7 +240,6 @@ angular.module('patientApp.controllers',
       myPopup.then(function (res) {
         console.log('Tapped!', res);
       });
-
     };
   })
 
@@ -236,7 +249,7 @@ angular.module('patientApp.controllers',
 
   .controller('QuestionnaireShowCtrl',
     function ($scope, $http, $state, $stateParams, $sessionStorage, $ionicPopup,
-              questionnaireApi, $localStorage, questionnaireHelper, answeredQuestionnaireApi) {
+              questionnaireApi, $localStorage, questionnaireHelper, answeredQuestionnaireApi,patientApi) {
       //Hilfsfunktion Quelle http://goessner.net/download/prj/jsonxml/xml2json.js
       var xml2json = function (xml, tab) {
         var X = {
@@ -465,7 +478,7 @@ angular.module('patientApp.controllers',
         alertPopup.then(function(res) {
           answeredQuestionnaireApi.create({
             questionnaireId : $stateParams.questionnaireId,
-            patientId : $localStorage.patient._id,
+            patientId : patientApi.getSelected._id,
             answeredQuestions : $sessionStorage.answeredQuestions
           });
           $state.go("tab.taskList");

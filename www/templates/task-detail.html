@@ -1,18 +1,17 @@
-<ion-view view-title="{{currentTask.Pattern}}">
+<ion-view view-title="Aufgabendetails" xmlns="http://www.w3.org/1999/html">
   <ion-content class="padding">
-    <div ng-controller="TaskDetailCtrl">
-      <div class="card" >
+      <div class="card">
         <div class="item item-divider">
-          Beschreibung
+          <label>{{taskPattern.name}}</label>
         </div>
         <div class="item item-text-wrap">
-          {{taskPattern.description}}
+          <label>{{taskPattern.description}}</label>
         </div>
       </div>
 
       <div class="list card" ng-controller="TaskDetailCtrl">
         <div class="item item-divider">
-          Angehängt Materialien
+          <label>Angehängte Materialien</label>
         </div>
 
         <ion-item ng-repeat="material in taskPattern.materials"
@@ -23,11 +22,11 @@
 
       <div class="list card padding" style="..." ng-controller="TaskDetailCtrl">
         <div class="item item-divider">
-          Erledigungszeitraum
+          <label>Erledigungszeitraum</label>
         </div>
         <div class="list card" ng-controller="TaskDetailCtrl">
           <div class="item item-divider">
-            Vorgeschlagenes Zeitinterval
+            <label>Vorgeschlagenes Zeitinterval</label>
           </div>
           <div class="item">
             <div class="row header">
@@ -49,7 +48,7 @@
         </div>
         <div class="list card" ng-controller="TaskDetailCtrl">
           <div class="item item-divider">
-            Eigenes Zeitinterval
+            <label>Eigenes Zeitinterval</label>
           </div>
           <div class="item">
             <div class="row header">
@@ -72,7 +71,6 @@
           </div>
         </div>
       </div>
-    </div>
   </div>
   </ion-content>
 </ion-view>

@@ -1,38 +1,65 @@
 angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", "ngStorage"])
   .constant('ApiServer', {
-    url: "" //http://192.168.40.105:3000/
+    url: "http://192.168.40.105:3000/" //http://192.168.40.105:3000/
   })
+
   .factory('patientApi', function (ApiServer, $http, $localStorage) {
     return {
-      all: function () {
-        $http.get(ApiServer.url + "patientAPI").success(function (response) {
-          console.log("patient api success");
-          $localStorage.allPatients = response;
-          return response;
-        }).error(function (err) {
-          console.log("patient API Fehler!");
-          return err;
-        });
+      getAll: function () {
+        if(typeof $localStorage.allPatients === "undefined"){
+          $http.get(ApiServer.url + "patientAPI/").success(function (response) {
+            console.log("patient api success");
+            console.log(response);
+            $localStorage.allPatients = response;
+          }).error(function (err) {
+            console.log("patient API Fehler!");
+            return err;
+          });
+        }
+        return $localStorage.allPatients;
       },
       get: function (patientId) {
         $http.get(ApiServer.url + "patientAPI/" + patientId).success(function (response) {
+          console.log(response);
           return response;
         }).error(function (err) {
           console.log("patient API Fehler!");
           return err;
         });
       },
-      me: function () {
-        $http.get(ApiServer.url + "patientAPI/" + $localStorage.patient._id).success(function (response) {
-          $localStorage.patient = response;
-          return $localStorage.patient;
-        }).error(function (err) {
-          console.log("patient API Fehler!");
-          return err;
+      getSelected: function () {
+      console.log(typeof $localStorage.patient);
+        if(typeof $localStorage.patient === "undefined"){
+        console.log("zuerst Patient wählen");
+          return "undefined";
+        } else {
+          $http.get(ApiServer.url + "patientAPI/" + $localStorage.patient._id).success(function (response) {
+            $localStorage.patient = response;
+            return $localStorage.patient;
+          }).error(function (err) {
+            console.log("patient API Fehler!");
+            return err;
+          });
+        }
+        return $localStorage.patient;
+      },
+      saveSelected: function (PatientObj) {
+        $localStorage.patient = PatientObj;
+        var success = true;
+        $http.put(ApiServer.url + "patientAPI/" + PatientObj._id, PatientObj)
+          .success(function (response) {
+            console.log("Patient editiert");
+            success = true;
+          }).error(function () {
+            console.log("patient API Fehler!");
+            success = false;
         });
+        console.log(success);
+        return success;
       },
       remove: function (patientId) {
         $http.delete(ApiServer.url + "patientAPI/" + patientId).success(function (response) {
+          console.log(response);
           console.log("patient gelöscht");
           return true;
         }).error(function () {
@@ -41,7 +68,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       create: function (patient) {
-        $http.post("patientAPI/", patient)
+        $http.post(ApiServer.url + "patientAPI/", patient)
           .success(function (response) {
             console.log("Neuen Patient angelegt");
             return true;
@@ -51,7 +78,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       update: function (patientId, patient) {
-        $http.put("patientAPI/" + patientId, patient)
+        $http.put(ApiServer.url + "patientAPI/" + patientId, patient)
           .success(function (response) {
             console.log("Patient editiert");
             return true;
@@ -64,16 +91,37 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
   })
   .factory('therapyTaskApi', function (ApiServer, $http, $localStorage) {
     return {
-      all: function () {
-        return $localStorage.therapyTaskPatterns;
-      },
-      get: function (therapyTaskId) {
-        $http.get(ApiServer.url + "therapyTaskAPI/" + therapyTaskId).success(function (response) {
-          return response;
+      all: function (forceUpdate) {
+        if(typeof $localStorage.allTherapyTasks === "undefined" || forceUpdate ||
+            $localStorage.therapyTaskLastUpdate.getDate() != new Date().getDate() ){
+        $http.get(ApiServer.url + "therapyTaskAPI/").success(function (response) {
+          console.log("TT Api all succ");
+          console.log(response);
+          $localStorage.allTherapyTasks = response;
+          $localStorage.therapyTaskLastUpdate = new Date();
         }).error(function (err) {
           console.log("therapyTask API Fehler!");
           return err;
         });
+      }
+      return $localStorage.allTherapyTasks;
+      },
+      get: function (therapyTaskId) {
+        var searchResult = $.grep($localStorage.allTherapyTasks, function (e, x) {
+                return e._id == therapyTaskId;
+              });
+        if(searchResult.length > 0){
+          console.log("return searchResult");
+          return searchResult[0];
+        } else {
+          $http.get(ApiServer.url + "therapyTaskAPI/" + therapyTaskId).success(function (response) {
+            console.log(response);
+            return response;
+          }).error(function (err) {
+            console.log("therapyTask API Fehler!");
+            return err;
+          });
+        }
       },
       remove: function (therapyTaskId) {
         $http.delete(ApiServer.url + "therapyTaskAPI/" + therapyTaskId).success(function (response) {
@@ -85,7 +133,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       create: function (therapyTask) {
-        $http.post("therapyTaskAPI/", therapyTask)
+        $http.post(ApiServer.url + "therapyTaskAPI/", therapyTask)
           .success(function (response) {
             console.log("Neuer therapyTask angelegt");
             return true;
@@ -95,7 +143,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       update: function (therapyTaskId, therapyTask) {
-        $http.put("therapyTaskAPI/" + therapyTaskId, therapyTask)
+        $http.put(ApiServer.url + "therapyTaskAPI/" + therapyTaskId, therapyTask)
           .success(function (response) {
             console.log("therapyTask editiert");
             return true;
@@ -107,7 +155,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
     }
   })
   .factory('questionnaireApi', function (ApiServer, $http, $localStorage) {
-    $http.get(ApiServer.url + "questionnaireAPI").success(function (response) {
+    $http.get(ApiServer.url + "questionnaireAPI/").success(function (response) {
       $localStorage.allquestionnaires = response;
     }).error(function (err) {
       console.log("Questionnaire API Fehler!");
@@ -132,7 +180,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       create: function (questionnaire) {
-        $http.post(ApiServer.url + "questionnaireAPI", questionnaire)
+        $http.post(ApiServer.url + "questionnaireAPI/", questionnaire)
           .success(function (response) {
             console.log("Neues Questionnaire angelegt");
             return true;
@@ -154,7 +202,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
     }
   })
   .factory('answeredQuestionnaireApi', function (ApiServer, $http, $localStorage) {
-    $http.get(ApiServer.url + "answeredQuestionnaireApi").success(function (response) {
+    $http.get(ApiServer.url + "answeredQuestionnaireApi/").success(function (response) {
       $localStorage.allAnsweredQuestionnaires = response;
     }).error(function (err) {
       console.log("AnsweredQuestionnaire API Fehler!");
@@ -179,7 +227,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       create: function (answeredQuestionnaire) {
-        $http.post(ApiServer.url + "/answeredQuestionnaireApi", answeredQuestionnaire)
+        $http.post(ApiServer.url + "answeredQuestionnaireApi/", answeredQuestionnaire)
           .success(function (response) {
             console.log("Neue AnsweredQuestionnaire angelegt");
             return true;
@@ -189,7 +237,7 @@ angular.module('patientApp.services', ["ngAnimate", "ngSanitize", "ngMaterial", 
         });
       },
       update: function (answeredQuestionnaireId, answeredQuestionnaire) {
-        $http.put(ApiServer.url + "/answeredQuestionnaireApi" + answeredQuestionnaireId, answeredQuestionnaire)
+        $http.put(ApiServer.url + "answeredQuestionnaireApi/" + answeredQuestionnaireId, answeredQuestionnaire)
           .success(function (response) {
             console.log("AnsweredQuestionnaire editiert");
             return true;

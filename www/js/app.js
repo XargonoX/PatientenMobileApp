@@ -92,6 +92,6 @@ angular.module('patientApp', ['ionic', 'ionic-timepicker', 'patientApp.controlle
   });
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/taskList');
+  $urlRouterProvider.otherwise('/tab/settings');
 
 });
